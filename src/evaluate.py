@@ -3,10 +3,10 @@ from src.train import train_model
 
 
 def evaluate_model():
-    model, X_test, y_test = train_model()
+    pipeline, X_test, y_test = train_model()
 
-    y_pred = model.predict(X_test)
-    y_prob = model.predict_proba(X_test)[:, 1]
+    y_pred = pipeline.predict(X_test)
+    y_prob = pipeline.predict_proba(X_test)[:, 1]
 
     print("\n📊 Confusion Matrix:")
     print(confusion_matrix(y_test, y_pred))
