@@ -1,9 +1,8 @@
 import joblib
 from pathlib import Path
-import pandas as pd
 
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -18,16 +17,13 @@ def train_model():
     df = load_data(DATA_PATH)
     df = clean_data(df)
 
-    # Define target
     target = "Churn Value"
     X = df.drop(columns=[target])
     y = df[target]
 
-    # Separate column types
     categorical_cols = X.select_dtypes(include="object").columns.tolist()
     numeric_cols = X.select_dtypes(exclude="object").columns.tolist()
 
-    # Preprocessing
     preprocessor = ColumnTransformer(
         transformers=[
             ("num", StandardScaler(), numeric_cols),
@@ -35,30 +31,48 @@ def train_model():
         ]
     )
 
-    # Pipeline
     pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            ("model", RandomForestClassifier(n_estimators=200, random_state=42)),
+            ("model", RandomForestClassifier(random_state=42)),
         ]
     )
 
-    # Train-test split
+    # Hyperparameter grid
+    param_grid = {
+        "model__n_estimators": [100, 200],
+        "model__max_depth": [None, 10, 20],
+        "model__min_samples_split": [2, 5],
+    }
+
+    grid_search = GridSearchCV(
+        pipeline,
+        param_grid,
+        cv=5,
+        scoring="roc_auc",
+        n_jobs=-1,
+        verbose=1,
+    )
+
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 
-    pipeline.fit(X_train, y_train)
+    grid_search.fit(X_train, y_train)
 
-    # Save pipeline
+    print("Best Parameters:", grid_search.best_params_)
+    print("Best CV Score:", grid_search.best_score_)
+
+    best_model = grid_search.best_estimator_
+
     model_dir = Path(__file__).resolve().parent.parent / "models"
     model_dir.mkdir(exist_ok=True)
 
-    joblib.dump(pipeline, model_dir / "churn_pipeline.pkl")
+    joblib.dump(best_model, model_dir / "churn_pipeline.pkl")
 
-    print("✅ Pipeline training complete. Saved to models/")
+    print("✅ Best tuned pipeline saved.")
 
-    return pipeline, X_test, y_test
+    return best_model, X_test, y_test
 
 
 if __name__ == "__main__":
