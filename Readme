@@ -1,0 +1,26 @@
+# Customer Churn Prediction (Production-Level ML Project)
+
+End-to-end Customer Churn Prediction system built using real IBM Telecom dataset.
+
+## 🚀 Features
+- Data preprocessing pipeline
+- Feature encoding
+- RandomForest classifier
+- Model evaluation (Precision, Recall, F1, ROC-AUC)
+- Model persistence using joblib
+- Production-style project structure
+
+## 📊 Dataset
+IBM Telco Customer Churn Dataset (Kaggle)
+
+## 🛠️ Tech Stack
+- Python
+- Pandas
+- Scikit-learn
+- FastAPI (planned)
+- Docker (planned)
+
+## ▶️ Run Project
+
+```bash
+python -m src.evaluate
