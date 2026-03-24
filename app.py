@@ -44,7 +44,6 @@ def home():
 def predict(data: CustomerData):
     input_dict = data.dict()
 
-    # Rename keys back to original column format
     column_mapping = {
         "Senior_Citizen": "Senior Citizen",
         "Tenure_Months": "Tenure Months",
@@ -63,10 +62,36 @@ def predict(data: CustomerData):
         "Total_Charges": "Total Charges"
     }
 
+    # Rename keys
     for new_key, old_key in column_mapping.items():
         input_dict[old_key] = input_dict.pop(new_key)
 
     df = pd.DataFrame([input_dict])
+
+    # 🔥 FORCE TYPES EXACTLY LIKE TRAINING
+    
+    # Map Senior Citizen from int (0/1) to Yes/No to match training data
+    if "Senior Citizen" in df.columns:
+        df["Senior Citizen"] = df["Senior Citizen"].map({1: "Yes", 0: "No", "1": "Yes", "0": "No"}).fillna(df["Senior Citizen"])
+
+    # Numeric columns
+    numeric_cols = [
+        "Tenure Months",
+        "Monthly Charges",
+        "Total Charges"
+    ]
+
+    for col in numeric_cols:
+        df[col] = pd.to_numeric(df[col], errors="coerce")
+
+    # Categorical columns → force string
+    categorical_cols = [col for col in df.columns if col not in numeric_cols]
+
+    for col in categorical_cols:
+        df[col] = df[col].astype(str)
+
+    # 🔥 Ensure same column order
+    df = df[pipeline.feature_names_in_]
 
     prediction = pipeline.predict(df)[0]
     probability = pipeline.predict_proba(df)[0][1]
@@ -75,3 +100,4 @@ def predict(data: CustomerData):
         "churn_prediction": int(prediction),
         "churn_probability": float(round(probability, 4))
     }
+    

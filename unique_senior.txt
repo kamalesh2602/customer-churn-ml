@@ -1,0 +1,3 @@
+<StringArray>
+['No', 'Yes']
+Length: 2, dtype: str

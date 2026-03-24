@@ -7,6 +7,7 @@ __pycache__/
 # Virtual Environment
 myenv/
 venv/
+.venv
 
 # Models
 models/*.pkl
